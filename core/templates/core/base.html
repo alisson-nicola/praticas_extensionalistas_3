@@ -1,0 +1,197 @@
+  {% load static %}
+  {% load permissions %}
+  <!DOCTYPE html>
+  <html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Sistema{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{% static '' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+      .sidebar-collapsed .sidebar {
+        width: 5rem !important;
+      }
+      .sidebar-collapsed .menu-text {
+        display: none !important;
+      }
+      .sidebar-collapsed #navbar-logo {
+        content: url("{% static '' %}") !important; 
+      }
+      .mobile-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 50;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+      }
+      .mobile-sidebar.open {
+        transform: translateX(0);
+      }
+
+      #navbar-logo {
+        height: 2rem;
+        object-fit: contain;
+      }
+    </style>
+  </head>
+
+  <body class="bg-gray-100 min-h-screen" x-data="{ sidebarOpen: false }" @click.outside.window="if (window.innerWidth < 640) sidebarOpen = false">
+    <div class="flex flex-col h-screen">
+      <!-- Navbar -->
+      <header class="bg-white shadow px-4 py-2 flex justify-between items-center border-b border-gray-200">
+        <div class="flex items-center gap-4">
+          <!-- Botão hamburger (mobile) -->
+          <button @click="sidebarOpen = !sidebarOpen" class="text-[#2d4739] focus:outline-none sm:hidden">
+            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
+          <!-- Botão de minimizar (desktop) -->
+          <button onclick="toggleSidebar()" class="hidden sm:block text-[#2d4739] focus:outline-none">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path id="toggle-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <!-- Logo (desktop) -->
+          <img id="navbar-logo" src="" alt="Logo" class="h-8 hidden sm:block" /><!--Adicionar o caminho da logo no src-->
+        </div>
+
+        <div class="relative" x-data="{ open: false }">
+          <button @click="open = !open" class="flex items-center space-x-2 text-sm font-medium text-gray-700 focus:outline-none">
+            {% if request.user.photo %}
+              <img src="{{ request.user.photo.url }}" class="h-8 w-8 rounded-full object-cover" />
+            {% else %}
+              <div class="h-8 w-8 bg-gray-300 text-[#2d4739] rounded-full flex items-center justify-center uppercase">
+                {{ request.user.first_name|first }}{{ request.user.last_name|first }}
+              </div>
+            {% endif %}
+            <span class="text-gray-800 hidden sm:inline">{{ request.user.get_full_name }}</span>
+            <svg class="w-4 h-4 ml-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-10">
+            <a href="{% url 'core:profile' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 15c2.163 0 4.194.513 5.879 1.418M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg> Perfil
+            </a>
+            <a href="{% url 'core:logout' %}" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+              <svg class="w-4 h-4 mr-2 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H4a3 3 0 01-3-3V7a3 3 0 013-3h6a3 3 0 013 3v1" />
+              </svg> Sair
+            </a>
+          </div>
+        </div>
+      </header>
+
+      <div class="flex flex-1 overflow-hidden">
+        <!-- Sidebar (desktop & mobile) -->
+        <aside id="sidebar"
+          class="sidebar bg-[#2d4739] text-white flex flex-col p-4 transition-all duration-300 sm:relative mobile-sidebar"
+          :class="{ 'open': sidebarOpen || window.innerWidth >= 640 }"
+        >
+          <nav class="space-y-2 mt-4">
+            <a href="{% url 'core:home_view' %}" class="sidebar-link flex items-center px-4 py-2 rounded-lg hover:bg-[#3a5a49] transition {% if request.path == '/home/' %}bg-[#3a5a49]{% endif %}">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12h18M3 6h18M3 18h18" />
+              </svg>
+              <span class="ml-3 text-sm menu-text">Home</span>
+            </a>
+
+            {% if request.user|has_screen_permission:'Grupos' %}
+            <a href="{% url 'core:group_list' %}" class="sidebar-link flex items-center px-4 py-2 rounded-lg hover:bg-[#3a5a49] transition {% if '/group' in request.path %}bg-[#3a5a49]{% endif %}">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M9 20H4v-2a3 3 0 015.356-1.857M16 11a4 4 0 10-8 0 4 4 0 008 0z" />
+              </svg>
+              <span class="ml-3 text-sm menu-text">Grupos</span>
+            </a>
+            {% endif %}
+
+            {% if request.user|has_screen_permission:'Usuários' %}
+            <a href="{% url 'core:user_list' %}" class="sidebar-link flex items-center px-4 py-2 rounded-lg hover:bg-[#3a5a49] transition {% if request.path|slice:":6" == '/users' %}bg-[#3a5a49]{% endif %}">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 15c2.163 0 4.194.513 5.879 1.418M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span class="ml-3 text-sm menu-text">Usuários</span>
+            </a>
+            {% endif %}
+          </nav>
+        </aside>
+
+        <!-- Main -->
+        <main class="flex-1 overflow-y-auto p-6 bg-white">
+          {% if messages %}
+          <div class="fixed top-4 right-4 z-50 space-y-2">
+            {% for message in messages %}
+            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
+                class="rounded-md p-4 shadow-md border-l-4 w-80
+                {% if message.tags == 'success' %}bg-green-50 border-green-500
+                {% elif message.tags == 'error' %}bg-red-50 border-red-500
+                {% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-500
+                {% else %}bg-blue-50 border-blue-500{% endif %}">
+              <div class="flex justify-between items-start">
+                <div class="text-sm text-gray-800">{{ message }}</div>
+                <button @click="show = false" class="ml-4 text-gray-500 hover:text-gray-700">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% block content %}{% endblock %}
+        </main>
+      </div>
+    </div>
+
+    <script>
+      function applySidebarState() {
+        const sidebar = document.getElementById('sidebar');
+        const navbarLogo = document.getElementById('navbar-logo');
+        const menuTexts = document.querySelectorAll('.menu-text');
+        const toggleIcon = document.getElementById('toggle-icon');
+        const collapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+
+        if (window.innerWidth >= 640) {
+          if (collapsed) {
+            sidebar.classList.add('w-20');
+            sidebar.classList.remove('w-64');
+            navbarLogo.src = "{% static '' %}";
+            menuTexts.forEach(el => el.classList.add('hidden'));
+            toggleIcon.setAttribute('d', 'M9 5l7 7-7 7');
+          } else {
+            sidebar.classList.add('w-64');
+            sidebar.classList.remove('w-20');
+            navbarLogo.src = ""; //Adicionar o caminho da logo no src
+            menuTexts.forEach(el => el.classList.remove('hidden'));
+            toggleIcon.setAttribute('d', 'M15 19l-7-7 7-7');
+          }
+        }
+      }
+
+      function toggleSidebar() {
+        const html = document.documentElement;
+        const collapsed = html.classList.contains('sidebar-collapsed');
+        localStorage.setItem('sidebar-collapsed', !collapsed);
+        html.classList.toggle('sidebar-collapsed');
+        applySidebarState();
+      }
+
+      function toggleMobileSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+      }
+
+      document.addEventListener('DOMContentLoaded', applySidebarState);
+    </script>
+  </body>
+  </html>

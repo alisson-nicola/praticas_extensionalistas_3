@@ -1,0 +1,5 @@
+django
+django-tailwind==4.0.1
+pillow==11.3.0
+cookiecutter==2.6.0
+pip==25.1.1

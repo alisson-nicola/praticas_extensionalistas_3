@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Bem-vindo ao Sistema </title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+    <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; max-width: 600px; margin: auto;">
+        <h2 style="color: #2d4739;">Bem-vindo ao Sistema</h2>
+        <p>Olá {{ user.first_name|default:user.username }},</p>
+        <p>Seu cadastro foi realizado com sucesso. Aqui estão suas credenciais de acesso:</p>
+        <ul>
+            <li><strong>Email:</strong> {{ user.email }}</li>
+            <li><strong>Senha:</strong> {{ password }}</li>
+        </ul>
+        <p>Você já pode acessar o sistema com os dados acima. Recomendamos alterar sua senha após o primeiro login.</p>
+        <p>Atenciosamente,<br>Equipe Devs</p>
+    </div>
+</body>
+</html>

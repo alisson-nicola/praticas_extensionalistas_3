@@ -1,0 +1,195 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block title %}Perfil do Usuário{% endblock %}
+
+{% block content %}
+<div x-data="{ openModal: {{ form_open_modal|yesno:'true,false' }} }" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div>
+    <h2 class="text-lg font-semibold text-gray-900">Perfil</h2>
+    <p class="mt-1 text-sm text-gray-600">Visualize seus dados e atualize sua foto de perfil.</p>
+  </div>
+
+  <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="update_photo">
+      <input type="hidden" name="remove_photo" id="remove_photo" value="false">
+
+      <!-- Upload -->
+      <div class="sm:col-span-2 mb-8 flex flex-col sm:flex-row sm:items-center sm:gap-6">
+        <div class="flex-shrink-0 w-28 h-28 rounded-full bg-gray-100 overflow-hidden relative">
+          {% if user.photo %}
+            <img id="photoPreview" src="{{ user.photo.url }}" alt="Foto" class="object-cover w-full h-full">
+          {% else %}
+            <img id="photoPreview" class="object-cover w-full h-full hidden" />
+            <svg id="defaultAvatar" class="w-full h-full text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+          {% endif %}
+        </div>
+        <div class="flex-1 mt-4 sm:mt-0">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Foto do perfil</label>
+          <div id="drop-area" class="flex justify-center px-6 py-8 border-2 border-dashed rounded-lg border-gray-300 bg-white cursor-pointer">
+            <div class="text-center">
+              <svg class="mx-auto h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                <path d="M28 8H20V16H8L24 32L40 16H28V8Z" fill="currentColor" />
+              </svg>
+              <div class="mt-3 text-sm text-gray-600">
+                <span class="text-[#2d4739] font-medium">Upload a file</span> ou arraste e solte
+              </div>
+              <p class="text-xs text-gray-500">PNG, JPG, GIF até 10MB</p>
+            </div>
+          </div>
+          <input id="photoInput" name="photo" type="file" accept="image/*" class="hidden">
+          <button type="button" onclick="removePhoto()" class="mt-2 text-sm text-red-600 underline">Remover foto</button>
+        </div>
+      </div>
+
+      <!-- Dados -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        {% for field in user_display_fields %}
+          <div>
+            <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+            <input type="text"
+                   value="{{ field.value }}"
+                   disabled
+                   {% if field.label == 'CPF' %}id="cpfInput"{% elif field.label == 'Telefone' %}id="phoneInput"{% endif %}
+                   class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm px-3 py-2 bg-gray-100 text-sm focus:outline-none">
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="mt-6 flex justify-between">
+        <button type="button" @click="openModal = true" class="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">Redefinir senha</button>
+        <button type="submit" class="px-6 py-2 bg-[#2d4739] text-white rounded-md hover:bg-green-900">Atualizar foto</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Modal -->
+  <div x-show="openModal" x-cloak @click.outside="openModal = false" class="fixed inset-0 z-50 bg-black bg-opacity-30 flex items-center justify-center">
+    <div class="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">Alterar senha</h3>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="change_password">
+
+        {% for field in password_form %}
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+            <div class="relative">
+              {{ field }}
+              <button type="button" onclick="togglePassword('{{ field.id_for_label }}')" class="absolute inset-y-0 right-0 px-3 flex items-center">
+                <svg id="icon_{{ field.id_for_label }}" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path d="M15 12a3 3 0 01-6 0" />
+                  <path d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7C20.268 16.057 16.477 19 12 19s-8.268-2.943-9.542-7z" />
+                </svg>
+              </button>
+            </div>
+            {% for error in field.errors %}
+              <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            {% endfor %}
+          </div>
+        {% endfor %}
+
+        <p class="text-xs text-gray-500 mb-4">A nova senha deve conter pelo menos 8 caracteres e não pode ser comum.</p>
+
+        <div class="flex justify-end gap-4">
+          <button type="button" @click="openModal = false" class="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-100">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-[#2d4739] text-white rounded-md hover:bg-green-900 text-sm">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+<script>
+  function togglePassword(id) {
+    const input = document.getElementById(id);
+    const icon = document.getElementById('icon_' + id);
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.add('text-green-600');
+    } else {
+      input.type = 'password';
+      icon.classList.remove('text-green-600');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const dropArea = document.getElementById('drop-area');
+    const photoInput = document.getElementById('photoInput');
+    const photoPreview = document.getElementById('photoPreview');
+    const defaultAvatar = document.getElementById('defaultAvatar');
+
+    const cpfInput = document.getElementById('cpfInput');
+    const phoneInput = document.getElementById('phoneInput');
+
+    function maskCPF(value) {
+      return value.replace(/\D/g, '')
+        .slice(0, 11)
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+
+    function maskPhone(value) {
+      return value.replace(/\D/g, '')
+        .replace(/(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{5})(\d)/, '$1-$2')
+        .replace(/(-\d{4})\d+?$/, '$1');
+    }
+
+    if (cpfInput && cpfInput.value) cpfInput.value = maskCPF(cpfInput.value);
+    if (phoneInput && phoneInput.value) phoneInput.value = maskPhone(phoneInput.value);
+
+    dropArea.addEventListener('click', () => photoInput.click());
+
+    ['dragenter', 'dragover'].forEach(evt =>
+      dropArea.addEventListener(evt, e => {
+        e.preventDefault(); e.stopPropagation();
+        dropArea.classList.add('border-green-500');
+      }));
+
+    ['dragleave', 'drop'].forEach(evt =>
+      dropArea.addEventListener(evt, e => {
+        e.preventDefault(); e.stopPropagation();
+        dropArea.classList.remove('border-green-500');
+      }));
+
+    dropArea.addEventListener('drop', e => {
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        photoInput.files = files;
+        previewFile(files[0]);
+      }
+    });
+
+    photoInput.addEventListener('change', () => {
+      if (photoInput.files.length > 0) {
+        previewFile(photoInput.files[0]);
+      }
+    });
+
+    function previewFile(file) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        photoPreview.src = e.target.result;
+        photoPreview.classList.remove('hidden');
+        if (defaultAvatar) defaultAvatar.classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    window.removePhoto = function () {
+      photoPreview.src = '';
+      photoPreview.classList.add('hidden');
+      if (defaultAvatar) defaultAvatar.classList.remove('hidden');
+      photoInput.value = '';
+      document.getElementById('remove_photo').value = 'true';
+    };
+  });
+</script>
+{% endblock %}

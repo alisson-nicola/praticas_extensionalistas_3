@@ -1,0 +1,12 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center h-full text-center">
+  <div>
+    <h1 class="text-2xl font-bold text-[#2d4739] mb-2">Bem-vindo, {{ request.user.first_name|default:request.user.username }}!</h1>
+    <p class="text-gray-600">Você está autenticado no sistema.</p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+Em caso de erros passe os seguintes códigos nesta ordem no terminal (Windows)
+1° => python -m venv venv
+
+2° => venv\Scripts\activate
+
+3° => pip install -r requirements.txt
+
+Caso o comado anterior não funcionar ou der erro de bibliotecas pode passar esses:
+3.1° => pip install django
+
+3.2° => pip install django-tailwind
+
+3.3° => python -m pip install Pillow
+
+Criando e aplicando os modelos
+4° => python manage.py makemigrations
+
+5° => python manage.py migrate
+
+Criando o superusuario (Importante para poder entrar no sistema)
+6° => python manage.py createsuperuser
+
+Criando as permissões (Importante para liberar os acessos aos grupos, deve ser repetido sempre que adicionar uma nova permissão em 'core\management\commands\create_screens.py')
+7° => python manage.py create_screens
+
+Iniciar o sistema
+8° => python manage.py runserver 
+
+Dica extra: Após iniciar o sistema crie um grupo admin, atribua todas as permissões a ele e salve(Por padrão o superadmin tem acesso total ao sistema, mas na atualização do usuario o campo Grupo é obrigatório), após atualize os demais dados do seu usuario admin para uma melhor experiência.

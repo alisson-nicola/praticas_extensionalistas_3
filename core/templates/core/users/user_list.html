@@ -1,0 +1,93 @@
+{% extends 'core/base.html' %}
+{% block title %}Usuários{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow-sm sm:rounded-lg p-6">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h2 class="text-lg font-semibold text-gray-900">Usuários</h2>
+      <p class="mt-1 text-sm text-gray-600">Lista de todos os usuários com nome, email, grupo, status e função.</p>
+    </div>
+    <a href="{% url 'core:user_create' %}" class="inline-flex items-center px-4 py-2 bg-[#2d4739] text-white text-sm font-medium rounded-md hover:bg-green-800">
+      + Adicionar usuário
+    </a>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-300">
+      <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grupo</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Função</th>
+          <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200 bg-white">
+        {% for user in users %}
+        <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
+          <!-- Nome e email -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+              {% if user.photo %}
+                <img class="h-10 w-10 rounded-full object-cover" src="{{ user.photo.url }}" alt="">
+              {% else %}
+                <div class="h-10 w-10 flex items-center justify-center rounded-full bg-[#2d4739] text-white font-semibold uppercase text-xs">
+                  {{ user.first_name|default:user.username|slice:":1" }}{{ user.last_name|slice:":1" }}
+                </div>
+              {% endif %}
+              <div class="ml-4">
+                <div class="text-sm font-medium text-gray-900">{{ user.get_full_name }}</div>
+                <div class="text-sm text-gray-500">{{ user.email }}</div>
+              </div>
+            </div>
+          </td>
+
+          <!-- Grupo -->
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            {% if user.group %}
+              {{ user.group.name }}
+            {% else %}
+              <span class="italic text-gray-400">Sem grupo</span>
+            {% endif %}
+          </td>
+
+          <!-- Status -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            {% if user.is_active %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                Ativo
+              </span>
+            {% else %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                Inativo
+              </span>
+            {% endif %}
+          </td>
+
+          <!-- Função -->
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            {% if user.is_admin %}
+              Admin
+            {% else %}
+              User
+            {% endif %}
+          </td>
+
+          <!-- Ação -->
+          <td class="
+          ">
+            <a href="{% url 'core:user_edit' user.id %}" class="text-[#2d4739] hover:underline">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Nenhum usuário cadastrado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

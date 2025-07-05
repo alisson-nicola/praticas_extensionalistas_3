@@ -1,0 +1,107 @@
+{% extends 'core/base.html' %}
+{% block title %}Grupos{% endblock %}
+{% block content %}
+<div class="bg-white shadow-sm sm:rounded-lg p-6">
+  <div class="flex justify-between items-center mb-4">
+    <div>
+      <h2 class="text-lg font-semibold text-gray-900">Grupos</h2>
+      <p class="text-sm text-gray-600">Lista de grupos com permissões atribuídas e usuários relacionados.</p>
+    </div>
+    <a href="{% url 'core:group_create' %}" class="inline-flex items-center px-4 py-2 bg-[#2d4739] text-white text-sm font-medium rounded-md hover:bg-green-800">
+      + Adicionar grupo
+    </a>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2">Nome</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Usuários vinculados</th>
+          <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-100">
+        {% for group in groups %}
+        <tr>
+          <td class="px-4 py-4 text-sm text-gray-900">{{ group.name }}</td>
+          <td class="px-4 py-4 text-sm text-gray-700">{{ group.user_set.count }}</td>
+          <td class="px-4 py-4 text-sm text-right space-x-2 font-medium">
+            <a href="{% url 'core:group_edit' group.id %}" class="text-[#2d4739] hover:underline">Editar</a>
+            <button 
+              type="button"
+              data-group-id="{{ group.id }}"
+              data-group-name="{{ group.name }}"
+              onclick="openModal(this)"
+              class="text-red-600 hover:underline"
+            >
+              Excluir
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3" class="px-6 py-4 text-sm text-gray-500 text-center">Nenhum grupo cadastrado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="confirmModal" class="fixed z-50 inset-0 bg-black/40 items-center justify-center hidden">
+  <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+    <div class="flex items-start gap-4">
+      <div class="flex-shrink-0">
+        <div class="bg-red-100 text-red-600 rounded-full p-2">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-lg font-semibold text-gray-900">Excluir grupo</h3>
+        <p class="mt-1 text-sm text-gray-600">
+          Tem certeza que deseja excluir o grupo <strong id="modalGroupName" class="text-gray-800 font-bold"></strong>? Esta ação não poderá ser desfeita.
+        </p>
+      </div>
+    </div>
+
+    <div class="mt-6 flex justify-end gap-3 border-t pt-4">
+      <form id="modalForm" method="post" action="">
+        {% csrf_token %}
+        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+          Excluir
+        </button>
+      </form>
+      <button onclick="closeModal()" type="button"
+        class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+        Cancelar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openModal(button) {
+    const modal = document.getElementById('confirmModal');
+    const groupName = button.getAttribute('data-group-name');
+    const groupId = button.getAttribute('data-group-id');
+
+    document.getElementById('modalGroupName').textContent = groupName;
+    const form = document.getElementById('modalForm');
+    form.action = `/groups/${groupId}/delete/`;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function closeModal() {
+    const modal = document.getElementById('confirmModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+</script>
+{% endblock %}
