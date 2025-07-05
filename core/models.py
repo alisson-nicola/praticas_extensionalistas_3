@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from .managers import CustomUserManager
 from django.contrib.auth.models import BaseUserManager
+from django.contrib.auth import get_user_model
 
 
 class Screen(models.Model):
@@ -72,3 +73,22 @@ class User(AbstractUser):
         if not self.username:
             self.username = self.email  # Força espelhamento
         super().save(*args, **kwargs)
+    
+class Task(models.Model):
+    STATUS_CHOICES = [
+        ('pendente',    'Pendente'),
+        ('em_andamento','Em andamento'),
+        ('concluida',   'Concluída'),
+        ('em_espera',   'Em espera'),
+        ('cancelada',   'Cancelada'),
+    ]
+
+    titulo       = models.CharField(max_length=255)
+    descricao    = models.TextField(blank=True, null=True)
+    created_by   = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='tasks')
+    created_at   = models.DateTimeField(auto_now_add=True)
+    end_date     = models.DateField()
+    status       = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
+
+    def __str__(self):
+        return self.titulo

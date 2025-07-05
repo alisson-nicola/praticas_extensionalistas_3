@@ -9,6 +9,14 @@ from core.views.redirects import redirect_to_login
 from core.views.group import group_list, group_create, group_edit, group_delete
 from core.views.user import user_list, user_create, user_edit
 from core.views.profile import profile_view
+from core.views.task import (
+    TaskListView,
+    TaskCreateView,
+    TaskUpdateView,
+    update_task_status,
+    delete_task,
+    task_detail
+)
 
 app_name = 'core'
 
@@ -37,5 +45,13 @@ urlpatterns = [
 
     # Perfil
     path('profile/', profile_view, name='profile'),
+
+    # Tarefas
+    path('tasks/', TaskListView.as_view(), name='task_list'),
+    path('tasks/create/', TaskCreateView.as_view(), name='task_create'),
+    path('tasks/update-status/<int:pk>/', update_task_status, name='task_update_status'),
+    path('tasks/delete/<int:pk>/', delete_task, name='task_delete'),
+    path('tasks/<int:pk>/detail/', task_detail, name='task_detail'),
+    path('tasks/<int:pk>/edit/', TaskUpdateView.as_view(), name='task_edit'),
 
 ]

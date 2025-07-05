@@ -1,0 +1,192 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="p-4">
+  <h1 class="text-xl font-bold mb-4">Minhas Tarefas</h1>
+  <button
+    id="createTaskBtn"
+    class="bg-green-600 text-white px-4 py-2 rounded"
+  >
+    Criar Tarefa
+  </button>
+
+  <table class="w-full mt-4">
+    <thead>
+      <tr>
+        <th class="text-left">Título</th>
+        <th class="text-left">Status</th>
+        <th class="text-left">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for task in tasks %}
+      <tr>
+        <td>{{ task.titulo }}</td>
+        <td>
+          <select class="status-select border rounded px-2 py-1"
+                  data-task-id="{{ task.id }}">
+            {% for key, value in task.STATUS_CHOICES %}
+              <option value="{{ key }}" {% if task.status == key %}selected{% endif %}>
+                {{ value }}
+              </option>
+            {% endfor %}
+          </select>
+        </td>
+        <td class="space-x-2">
+          <button
+            class="edit-btn bg-yellow-500 text-white px-2 py-1 rounded"
+            data-task-id="{{ task.id }}"
+          >
+            Editar
+          </button>
+          <button
+            class="details-btn bg-blue-500 text-white px-2 py-1 rounded"
+            data-task-id="{{ task.id }}"
+          >
+            Detalhes
+          </button>
+          <button
+            class="delete-btn bg-red-500 text-white px-2 py-1 rounded"
+            data-task-id="{{ task.id }}"
+          >
+            Excluir
+          </button>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="3">Não existem tarefas criadas.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal compartilhado -->
+<div
+  id="taskModal"
+  class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+>
+  <div
+    id="modalContent"
+    class="bg-white p-4 rounded w-full max-w-md"
+  ></div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('🔥 task_list.js carregado e DOM pronto');
+
+  const modal        = document.getElementById('taskModal');
+  const modalContent = document.getElementById('modalContent');
+  const createBtn    = document.getElementById('createTaskBtn');
+  let currentFormUrl = null;
+
+  // 1) Abrir modal de criação
+  createBtn.addEventListener('click', () => {
+    currentFormUrl = "{% url 'core:task_create' %}";
+    fetch(currentFormUrl)
+      .then(r => r.ok ? r.json() : Promise.reject(r))
+      .then(data => {
+        modalContent.innerHTML = data.html;
+        modal.classList.remove('hidden');
+      })
+      .catch(err => console.error('Erro ao abrir form de criação:', err));
+  });
+
+  // 2) Fechar modal ao clicar fora do conteúdo
+  modal.addEventListener('click', e => {
+    if (e.target === modal) modal.classList.add('hidden');
+  });
+
+  // 3) Capturar submit do form (criação ou edição)
+  document.addEventListener('submit', e => {
+    if (e.target.id === 'taskForm') {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      fetch(currentFormUrl, {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        body: formData
+      })
+      .then(r => r.ok ? r.json() : Promise.reject(r))
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          modalContent.innerHTML = data.html;
+        }
+      })
+      .catch(err => console.error('Erro ao salvar tarefa:', err));
+    }
+  });
+
+  // 4) Editar tarefa (abre modal com form preenchido)
+  document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id  = btn.dataset.taskId;
+      const urlTemplate = "{% url 'core:task_edit' 0 %}";
+      const url         = urlTemplate.replace('/0/', `/${id}/`);
+      currentFormUrl    = url;
+
+      fetch(url)
+        .then(r => r.ok ? r.json() : Promise.reject(r))
+        .then(data => {
+          modalContent.innerHTML = data.html;
+          modal.classList.remove('hidden');
+        })
+        .catch(err => console.error('Erro ao abrir form de edição:', err));
+    });
+  });
+
+  // 5) Detalhes via mini‐modal
+  document.querySelectorAll('.details-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id          = btn.dataset.taskId;
+      const urlTemplate = "{% url 'core:task_detail' 0 %}";
+      const url         = urlTemplate.replace('/0/', `/${id}/`);
+
+      fetch(url)
+        .then(r => r.ok ? r.json() : Promise.reject(r))
+        .then(data => {
+          modalContent.innerHTML = data.html;
+          modal.classList.remove('hidden');
+          document.getElementById('closeDetail')
+                  .addEventListener('click', () => modal.classList.add('hidden'));
+        })
+        .catch(err => console.error('Erro ao carregar detalhes:', err));
+    });
+  });
+
+  // 6) Excluir tarefa
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!confirm('Confirmar exclusão?')) return;
+      fetch(`/tasks/delete/${btn.dataset.taskId}/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'}
+      })
+      .then(r => r.ok ? location.reload() : Promise.reject(r))
+      .catch(err => console.error('Erro ao excluir tarefa:', err));
+    });
+  });
+
+  // 7) Atualizar status via AJAX
+  document.querySelectorAll('.status-select').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const taskId = e.target.dataset.taskId;
+      const status = e.target.value;
+      fetch(`/tasks/update-status/${taskId}/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        body: new URLSearchParams({status})
+      })
+      .catch(err => console.error('Erro ao atualizar status:', err));
+    });
+  });
+});
+</script>
+{% endblock %}
