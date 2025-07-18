@@ -123,6 +123,19 @@
             </a>
             {% endif %}
           </nav>
+
+            {% if request.user|has_screen_permission:'Tarefas' %}
+            <a href="{% url 'core:task_list' %}"
+              class="sidebar-link flex items-center px-4 py-2 rounded-lg hover:bg-[#3a5a49]
+              {% if '/tasks' in request.path %}bg-[#3a5a49]{% endif %}">
+            <!-- ícone Tarefas -->
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12h6M9 16h6M5 8h14M4 6h16v14H4V6z" />
+              </svg>
+              <span class="ml-3 text-sm menu-text">Tarefas</span>
+            </a>
+            {% endif %}
         </aside>
 
         <!-- Main -->
@@ -193,5 +206,6 @@
 
       document.addEventListener('DOMContentLoaded', applySidebarState);
     </script>
+    {% block scripts %}{% endblock %}
   </body>
   </html>

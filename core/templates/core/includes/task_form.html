@@ -1,0 +1,33 @@
+{# formulário de criação/edição #}
+<form id="taskForm">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+
+  <div class="mb-2">
+    {{ form.titulo.label_tag }}
+    {{ form.titulo }}
+    {{ form.titulo.errors }}
+  </div>
+
+  <div class="mb-2">
+    {{ form.descricao.label_tag }}
+    {{ form.descricao }}
+    {{ form.descricao.errors }}
+  </div>
+
+  <div class="mb-2">
+    {{ form.end_date.label_tag }}
+    {{ form.end_date }}
+    {{ form.end_date.errors }}
+  </div>
+
+  <div class="mb-2">
+    {{ form.status.label_tag }}
+    {{ form.status }}
+    {{ form.status.errors }}
+  </div>
+
+  <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">
+    Salvar
+  </button>
+</form>

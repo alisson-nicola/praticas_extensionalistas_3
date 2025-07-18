@@ -1,0 +1,25 @@
+{# core/templates/core/includes/task_detail.html #}
+<div class="p-4">
+  <h2 class="text-lg font-bold mb-2">{{ task.titulo }}</h2>
+
+  <p><strong>Descrição:</strong><br>
+    {{ task.descricao|default:"(sem descrição)"|linebreaksbr }}
+  </p>
+
+  <p><strong>Criada em:</strong>
+    {{ task.created_at|date:"d/m/Y H:i" }}
+  </p>
+
+  <p><strong>Término em:</strong>
+    {{ task.end_date|date:"d/m/Y" }}
+  </p>
+
+  <p><strong>Status:</strong>
+    {{ task.get_status_display }}
+  </p>
+
+  <button id="closeDetail"
+          class="mt-4 bg-gray-300 px-3 py-1 rounded">
+    Fechar
+  </button>
+</div>
